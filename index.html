@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Time & Notes Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1f2933, #020617);
+      color: #f9fafb;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 900px;
+      height: 100vh;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .top {
+      flex: 2;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .time-display {
+      font-size: clamp(2.4rem, 4vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .date-display {
+      margin-top: 6px;
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      color: #cbd5f5;
+    }
+
+    .extra-info {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .mini-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .bottom {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .bottom-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      padding: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    @media (max-width: 700px) {
+      .top {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="top">
+      <div class="card">
+        <div class="mini-label">Current time</div>
+        <div id="time" class="time-display">00:00:00</div>
+        <div id="date" class="date-display">Loading date…</div>
+        <div class="extra-info" id="greeting">Welcome!</div>
+      </div>
+
+      <div class="card">
+        <div class="mini-label">Day stats</div>
+        <div class="stat-value" id="dayName">—</div>
+        <div class="extra-info" id="dayOfYear">Day — of 365</div>
+        <div class="extra-info" id="weekNumber">Week —</div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="bottom-label">Current Game</div>
+      <textarea id="noteArea" placeholder="Type game here…"></textarea>
+      <div class="hint">Type what game your playing!.</div>
+    </div>
+  </div>
+
+  <script>
+    function pad(n) {
+      return n.toString().padStart(2, "0");
+    }
+
+    function getWeekNumber(d) {
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+      return weekNo;
+    }
+
+    function getDayOfYear(d) {
+      const start = new Date(d.getFullYear(), 0, 0);
+      const diff = d - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
+    }
+
+    function updateClock() {
+      const now = new Date();
+
+      const hours = pad(now.getHours());
+      const minutes = pad(now.getMinutes());
+      const seconds = pad(now.getSeconds());
+
+      document.getElementById("time").textContent = `${hours}:${minutes}:${seconds}`;
+
+      const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      document.getElementById("date").textContent = now.toLocaleDateString(undefined, options);
+
+      const dayName = now.toLocaleDateString(undefined, { weekday: "long" });
+      document.getElementById("dayName").textContent = dayName;
+
+      const dayOfYear = getDayOfYear(now);
+      document.getElementById("dayOfYear").textContent = `Day ${dayOfYear} of 365`;
+
+      const week = getWeekNumber(now);
+      document.getElementById("weekNumber").textContent = `Week ${week}`;
+
+      const hour = now.getHours();
+      let greeting;
+      if (hour < 5) greeting = "Late night.";
+      else if (hour < 12) greeting = "Good morning.";
+      else if (hour < 18) greeting = "Afternoon.";
+      else greeting = "Evening.";
+      document.getElementById("greeting").textContent = greeting;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
